@@ -76,7 +76,7 @@ CLASS IMPLEMENTATION
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // Constructor
 
-FGFDMExec::FGFDMExec(JSBSim::FGGroundCallback* gc, FGPropertyManager* root, std::shared_ptr<unsigned int> fdmctr)
+FGFDMExec::FGFDMExec(const std::shared_ptr<JSBSim::FGGroundCallback>& gc, FGPropertyManager* root, std::shared_ptr<unsigned int> fdmctr)
   : RandomSeed(0), RandomGenerator(make_shared<RandomNumberGenerator>(RandomSeed)),
     FDMctr(fdmctr), _gc(gc)
 {
@@ -225,7 +225,7 @@ bool FGFDMExec::Allocate(void)
   Models[eInertial]          = std::make_shared<FGInertial>(this);
   Inertial = static_cast<FGInertial*>(Models[eInertial].get());
 
-  Inertial->SetGroundCallback(_gc.get());
+  Inertial->SetGroundCallback(_gc);
 
   // See the eModels enum specification in the header file. The order of the
   // enums specifies the order of execution. The Models[] vector is the primary
@@ -1228,7 +1228,7 @@ bool FGFDMExec::ReadChild(Element* el)
   auto child = std::make_shared<childData>();
 
   auto pm = std::make_unique<FGPropertyManager>(Root);
-  child->exec = std::make_unique<FGFDMExec>(nullptr, pm.get(), FDMctr);
+  child->exec = std::make_unique<FGFDMExec>(std::shared_ptr<JSBSim::FGGroundCallback>(), pm.get(), FDMctr);
   child->exec->SetChild(true);
 
   string childAircraft = el->GetAttributeValue("name");

@@ -158,7 +158,7 @@ public:
       @param gc A pointer to a ground callback object
       @see FGGroundCallback
   */
-  void SetGroundCallback(FGGroundCallback* gc) { GroundCallback.reset(gc); }
+  void SetGroundCallback(const std::shared_ptr<FGGroundCallback>& gc) { GroundCallback = gc; }
 
   /// These define the indices use to select the gravitation models.
   enum eGravType {
@@ -224,7 +224,7 @@ private:
   double a;    // WGS84 semimajor axis length in feet 
   double b;    // WGS84 semiminor axis length in feet
   int gravType;
-  std::unique_ptr<FGGroundCallback> GroundCallback;
+  std::shared_ptr<FGGroundCallback> GroundCallback;
 
   double GetGAccel(double r) const;
   FGColumnVector3 GetGravityJ2(const FGLocation& position) const;

@@ -208,7 +208,7 @@ class JSBSIM_API FGFDMExec : public FGJSBBase
 public:
 
   /// Default constructor
-  FGFDMExec(JSBSim::FGGroundCallback* gc, FGPropertyManager* root = nullptr, std::shared_ptr<unsigned int> fdmctr = nullptr);
+  FGFDMExec(const std::shared_ptr<JSBSim::FGGroundCallback>& gc, FGPropertyManager* root = nullptr, std::shared_ptr<unsigned int> fdmctr = nullptr);
 
   /// Default destructor
   ~FGFDMExec();
