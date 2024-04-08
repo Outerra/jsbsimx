@@ -87,12 +87,21 @@ public:
   double GetSemiminor(void) const {return b;}
   double GetGM(void) {return GM;}
 
-  /** @name Functions that rely on the ground callback
-      The following functions allow to set and get the vehicle position above
-      the ground. The ground level is obtained by interrogating an instance of
-      FGGroundCallback. A ground callback must therefore be set with
-      SetGroundCallback() before calling any of these functions. */
-  ///@{
+  /** Get terrain contact point information below the current location.
+    @param location     Location at which the contact point is evaluated.
+    @param contact      Contact point location
+    @param normal       Terrain normal vector in contact point    (ECEF frame)
+    @param velocity     Terrain linear velocity in contact point  (ECEF frame)
+    @param ang_velocity Terrain angular velocity in contact point (ECEF frame)
+    @return Location altitude above contact point (AGL) in feet.
+    @see SetGroundCallback */
+  double GetContactPoint(const FGLocation& location, FGLocation& contact,
+    FGColumnVector3& normal, FGColumnVector3& velocity,
+    FGColumnVector3& ang_velocity) const
+  {
+    return GroundCallback->GetAGLevel(location, contact, normal, velocity, ang_velocity);
+  }
+
   /** Get terrain contact point information below the current location.
       @param location     Location at which the contact point is evaluated.
       @param contact      Contact point location
@@ -101,12 +110,14 @@ public:
       @param ang_velocity Terrain angular velocity in contact point (ECEF frame)
       @return Location altitude above contact point (AGL) in feet.
       @see SetGroundCallback */
-  double GetContactPoint(const FGLocation& location, FGLocation& contact,
+  double GetContactPoint(double maxdist, const FGLocation& location, FGLocation& contact,
                          FGColumnVector3& normal, FGColumnVector3& velocity,
-                         FGColumnVector3& ang_velocity) const
+                         FGColumnVector3& ang_velocity,
+                         FGColumnVector3& ground_position, double& ground_mass_inverse, FGMatrix33& ground_j_inverse) const
   {
-    return GroundCallback->GetAGLevel(location, contact, normal, velocity,
-                                      ang_velocity); }
+    return GroundCallback->GetContact(maxdist, location, contact, normal, velocity,
+                                      ang_velocity, ground_position, ground_mass_inverse, ground_j_inverse);
+  }
 
   /** Get the altitude above ground level.
       @return the altitude AGL in feet.
@@ -115,8 +126,7 @@ public:
   double GetAltitudeAGL(const FGLocation& location) const {
     FGLocation lDummy;
     FGColumnVector3 vDummy;
-    return GroundCallback->GetAGLevel(location, lDummy, vDummy, vDummy,
-                                      vDummy);
+    return GroundCallback->GetAGLevel(location, lDummy, vDummy, vDummy, vDummy);
   }
 
   /** Set the altitude above ground level.
@@ -129,7 +139,7 @@ public:
       @param h Terrain elevation in ft.
       @see SetGroundcallback */
   void SetTerrainElevation(double h) {
-    GroundCallback->SetTerrainElevation(h);
+    //GroundCallback->SetTerrainElevation(h);
   }
 
   /** Set the simulation time.

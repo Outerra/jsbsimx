@@ -51,6 +51,19 @@ CLASS DECLARATION
 struct LagrangeMultiplier {
   FGColumnVector3 ForceJacobian;
   FGColumnVector3 LeverArm;
+
+  FGColumnVector3 jac1;                           /// LeverArm x -ForceJacobian // -r1 x u
+  FGColumnVector3 jac3;                           /// TerrainContact x ForceJacobian  // r2 x u
+
+  //FGColumnVector3 jac0;                           /// ForceJacobian
+  //FGColumnVector3 jac1;                           /// LeverArm x -ForceJacobian // -r1 x u
+  //FGColumnVector3 jac2;                           /// -ForceJacobian
+  //FGColumnVector3 jac3;                           /// TerrainContact x ForceJacobian  // r2 x u
+  FGColumnVector3 surface_linear_velocity;        /// Contact surface linear velocity
+  FGColumnVector3 surface_angular_velocity;       /// Contact surface angular veloty
+  FGMatrix33 surface_inv_J;                       /// Inverse tensor of inertia of contact surface body
+  double surface_inv_mass;                        /// Inverse mass of contact surface body
+
   double Min;
   double Max;
   double value;

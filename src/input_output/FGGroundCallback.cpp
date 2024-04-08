@@ -56,6 +56,27 @@ double FGDefaultGroundCallback::GetAGLevel(double t, const FGLocation& loc,
   return l.GetGeodAltitude() - mTerrainElevation;
 }
 
+double FGDefaultGroundCallback::GetContact(double t, double maxdist, const FGLocation& loc,
+  FGLocation& contact, FGColumnVector3& normal,
+  FGColumnVector3& vel, FGColumnVector3& angularVel,
+  FGColumnVector3& ground_position,
+  double& ground_mass_inverse,
+  FGMatrix33& ground_j_inverse) const
+{
+  vel.InitMatrix();
+  angularVel.InitMatrix();
+  FGLocation l = loc;
+  l.SetEllipse(a, b);
+  double latitude = l.GetGeodLatitudeRad();
+  double cosLat = cos(latitude);
+  double longitude = l.GetLongitude();
+  normal = FGColumnVector3(cosLat * cos(longitude), cosLat * sin(longitude),
+    sin(latitude));
+  contact.SetEllipse(a, b);
+  contact.SetPositionGeodetic(longitude, latitude, mTerrainElevation);
+  return l.GetGeodAltitude() - mTerrainElevation;
+}
+
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 } // namespace JSBSim

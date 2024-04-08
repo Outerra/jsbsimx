@@ -76,9 +76,9 @@ CLASS IMPLEMENTATION
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // Constructor
 
-FGFDMExec::FGFDMExec(FGPropertyManager* root, std::shared_ptr<unsigned int> fdmctr)
+FGFDMExec::FGFDMExec(JSBSim::FGGroundCallback* gc, FGPropertyManager* root, std::shared_ptr<unsigned int> fdmctr)
   : RandomSeed(0), RandomGenerator(make_shared<RandomNumberGenerator>(RandomSeed)),
-    FDMctr(fdmctr)
+    FDMctr(fdmctr), _gc(gc)
 {
   Frame           = 0;
   disperse        = 0;
@@ -223,6 +223,9 @@ bool FGFDMExec::Allocate(void)
   // Note that this does not affect the order in which the models will be
   // executed later.
   Models[eInertial]          = std::make_shared<FGInertial>(this);
+  Inertial = static_cast<FGInertial*>(Models[eInertial].get());
+
+  Inertial->SetGroundCallback(_gc.get());
 
   // See the eModels enum specification in the header file. The order of the
   // enums specifies the order of execution. The Models[] vector is the primary
@@ -245,7 +248,6 @@ bool FGFDMExec::Allocate(void)
 
   // Assign the Model shortcuts for internal executive use only.
   Propagate         = static_cast<FGPropagate*>(Models[ePropagate].get());
-  Inertial          = static_cast<FGInertial*>(Models[eInertial].get());
   Input             = static_cast<FGInput*>(Models[eInput].get());
   Atmosphere        = static_cast<FGAtmosphere*>(Models[eAtmosphere].get());
   Winds             = static_cast<FGWinds*>(Models[eWinds].get());
@@ -1226,7 +1228,7 @@ bool FGFDMExec::ReadChild(Element* el)
   auto child = std::make_shared<childData>();
 
   auto pm = std::make_unique<FGPropertyManager>(Root);
-  child->exec = std::make_unique<FGFDMExec>(pm.get(), FDMctr);
+  child->exec = std::make_unique<FGFDMExec>(nullptr, pm.get(), FDMctr);
   child->exec->SetChild(true);
 
   string childAircraft = el->GetAttributeValue("name");
@@ -1386,4 +1388,15 @@ void FGFDMExec::Debug(int from)
     }
   }
 }
+
+void FGFDMExec::RedirectStdOutput(std::ostream* cout_buf, std::ostream* cerr_buf) {
+  if (cout_buf) {
+    cout.rdbuf(cout_buf->rdbuf());
+  }
+
+  if (cerr_buf) {
+    cerr.rdbuf(cerr_buf->rdbuf());
+  }
+}
+
 }

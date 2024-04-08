@@ -61,6 +61,10 @@ FGInertial::FGInertial(FGFDMExec* fgex)
   b               = 20855486.5951;      // WGS84 semiminor axis length in feet
   gravType = gtWGS84;
 
+  //OT
+  a = b = 3.28084 * 6378135;
+  gravType = gtStandard;
+
   // Lunar defaults
   /*
   double RotationRate    = 0.0000026617;
@@ -71,7 +75,7 @@ FGInertial::FGInertial(FGFDMExec* fgex)
   */
 
   vOmegaPlanet = { 0.0, 0.0, RotationRate };
-  GroundCallback = std::make_unique<FGDefaultGroundCallback>(a, b);
+  //GroundCallback = std::make_unique<FGDefaultGroundCallback>(a, b);
 
   bind();
 
@@ -115,7 +119,7 @@ bool FGInertial::Load(Element* el)
   if (el->FindElement("J2"))
     J2 = el->FindElementValueAsNumber("J2"); // Dimensionless
 
-  GroundCallback->SetEllipse(a, b);
+  //GroundCallback->SetEllipse(a, b);
 
   // Messages to warn the user about possible inconsistencies.
   if (a != b && J2 == 0.0)

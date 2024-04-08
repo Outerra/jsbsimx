@@ -287,18 +287,32 @@ const FGColumnVector3& FGLGear::GetBodyForces(void)
   if (isRetractable) gearPos = GetGearUnitPos();
 
   if (gearPos > 0.99) { // Gear DOWN
-    FGColumnVector3 normal, terrainVel, dummy;
+    FGColumnVector3 normal, terrainVel, terrainVelAng, terrainPos;
     FGLocation gearLoc, contact;
     FGColumnVector3 vWhlBodyVec = Ts2b * (vXYZn - in.vXYZcg);
+    double terrainMassInv;
+    FGMatrix33 terrainJInv;
 
     vLocalGear = in.Tb2l * vWhlBodyVec; // Get local frame wheel location
     gearLoc = in.Location.LocalToLocation(vLocalGear);
 
     // Compute the height of the theoretical location of the wheel (if strut is
     // not compressed) with respect to the ground level
-    double height = fdmex->GetInertial()->GetContactPoint(gearLoc, contact,
-                                                          normal, terrainVel,
-                                                          dummy);
+    const double maxdist = 20; //ft
+    double height = fdmex->GetInertial()->GetContactPoint(maxdist, gearLoc, contact, normal, terrainVel, terrainVelAng, terrainPos, terrainMassInv, terrainJInv);
+
+    LMultiplier[ftRoll].surface_linear_velocity = in.Tec2b * terrainVel;
+    LMultiplier[ftSide].surface_linear_velocity = LMultiplier[ftRoll].surface_linear_velocity;
+    LMultiplier[ftDynamic].surface_linear_velocity = LMultiplier[ftRoll].surface_linear_velocity;
+    LMultiplier[ftRoll].surface_angular_velocity = in.Tec2b * terrainVelAng;
+    LMultiplier[ftSide].surface_angular_velocity = LMultiplier[ftRoll].surface_angular_velocity;
+    LMultiplier[ftDynamic].surface_angular_velocity = LMultiplier[ftRoll].surface_angular_velocity;
+    LMultiplier[ftRoll].surface_inv_mass = terrainMassInv;
+    LMultiplier[ftSide].surface_inv_mass = terrainMassInv;
+    LMultiplier[ftDynamic].surface_inv_mass = terrainMassInv;
+    LMultiplier[ftRoll].surface_inv_J = terrainJInv;
+    LMultiplier[ftSide].surface_inv_J = terrainJInv;
+    LMultiplier[ftDynamic].surface_inv_J = terrainJInv;
 
     if (!fdmex->GetTrimStatus())
       height -= GroundReactions->GetBumpHeight();
@@ -382,7 +396,8 @@ const FGColumnVector3& FGLGear::GetBodyForces(void)
 
       // Prepare the Jacobians and the Lagrange multipliers for later friction
       // forces calculations.
-      ComputeJacobian(vWhlContactVec);
+      //ComputeJacobian(vWhlContactVec);
+      ComputeJacobian(vWhlContactVec, in.Tec2b * (contact - terrainPos));
     } else { // Gear is NOT compressed
       compressLength = 0.0;
       compressSpeed = 0.0;
@@ -669,7 +684,7 @@ double FGLGear::GetGearUnitPos(void) const
 // Compute the jacobian entries for the friction forces resolution later
 // in FGPropagate
 
-void FGLGear::ComputeJacobian(const FGColumnVector3& vWhlContactVec)
+void FGLGear::ComputeJacobian(const FGColumnVector3& vWhlContactVec, const FGColumnVector3& vTerrainContactVec)
 {
   // When the point of contact is moving, dynamic friction is used
   // This type of friction is limited to ctSTRUCTURE elements because their
@@ -705,10 +720,14 @@ void FGLGear::ComputeJacobian(const FGColumnVector3& vWhlContactVec)
     // "dynamic friction".
     StaticFriction = true;
 
-    LMultiplier[ftRoll].ForceJacobian = mT * FGColumnVector3(1.,0.,0.);
-    LMultiplier[ftSide].ForceJacobian = mT * FGColumnVector3(0.,1.,0.);
+    LMultiplier[ftRoll].ForceJacobian = mT.row(1);// * FGColumnVector3(1., 0., 0.);
+    LMultiplier[ftSide].ForceJacobian = mT.row(2);// * FGColumnVector3(0., 1., 0.);
     LMultiplier[ftRoll].LeverArm = vWhlContactVec;
     LMultiplier[ftSide].LeverArm = vWhlContactVec;
+    LMultiplier[ftRoll].jac1 = vWhlContactVec * LMultiplier[ftRoll].ForceJacobian;
+    LMultiplier[ftSide].jac1 = vWhlContactVec * LMultiplier[ftSide].ForceJacobian;
+    LMultiplier[ftRoll].jac3 = -(vTerrainContactVec * LMultiplier[ftRoll].ForceJacobian);
+    LMultiplier[ftSide].jac3 = -(vTerrainContactVec * LMultiplier[ftSide].ForceJacobian);
 
     switch(eContactType) {
     case ctBOGEY:

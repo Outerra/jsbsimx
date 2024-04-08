@@ -203,6 +203,11 @@ public:
      return data[(col-1)*eRows+row-1];
    }
 
+   FGColumnVector3 row(unsigned int row) const {
+     --row;
+     return FGColumnVector3(data[row], data[row + eRows], data[row + eRows + eRows]);
+   }
+
   /** Number of rows in the matrix.
       @return the number of rows in the matrix.
    */

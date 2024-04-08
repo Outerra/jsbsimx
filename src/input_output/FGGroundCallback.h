@@ -44,6 +44,7 @@ namespace JSBSim {
 
 class FGLocation;
 class FGColumnVector3;
+class FGMatrix33;
 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 CLASS DOCUMENTATION
@@ -71,6 +72,7 @@ public:
   /** Compute the altitude above ground.
       The altitude depends on time t and location l.
       @param t simulation time
+      @param maxdist max distance from location to check for contact, else return maxdist
       @param l location
       @param contact Contact point location below the location l
       @param normal Normal vector at the contact point
@@ -78,24 +80,70 @@ public:
       @param w Angular velocity at the contact point
       @return altitude above ground
    */
-  virtual double GetAGLevel(double t, const FGLocation& location,
-                            FGLocation& contact,
-                            FGColumnVector3& normal, FGColumnVector3& v,
-                            FGColumnVector3& w) const = 0;
+  virtual double GetAGLevel(double t,
+    const FGLocation& location,
+    FGLocation& contact,
+    FGColumnVector3& normal, FGColumnVector3& v,
+    FGColumnVector3& w) const = 0;
+
+  /** Compute the altitude above ground.
+      The altitude depends on time t and location l.
+      @param t simulation time
+      @param maxdist max distance from location to check for contact, else return maxdist
+      @param l location
+      @param contact Contact point location below the location l
+      @param normal Normal vector at the contact point
+      @param v Linear velocity at the contact point
+      @param w Angular velocity at the contact point
+      @return altitude above ground
+   */
+  virtual double GetContact(double t, double maxdist,
+    const FGLocation& location,
+    FGLocation& contact,
+    FGColumnVector3& normal, FGColumnVector3& v,
+    FGColumnVector3& w,
+    FGColumnVector3& ground_position,
+    double& ground_mass_inverse,
+    FGMatrix33& ground_j_inverse) const = 0;
+
 
   /** Compute the altitude above ground.
       The altitude depends on location l.
       @param l location
+      @param maxdist max distance from location to check for contact, else return maxdist
       @param contact Contact point location below the location l
       @param normal Normal vector at the contact point
       @param v Linear velocity at the contact point
       @param w Angular velocity at the contact point
       @return altitude above ground
    */
-  virtual double GetAGLevel(const FGLocation& location, FGLocation& contact,
-                            FGColumnVector3& normal, FGColumnVector3& v,
-                            FGColumnVector3& w) const
-  { return GetAGLevel(time, location, contact, normal, v, w); }
+  double GetAGLevel(const FGLocation& location, FGLocation& contact,
+    FGColumnVector3& normal, FGColumnVector3& v,
+    FGColumnVector3& w) const
+  {
+    return GetAGLevel(time, location, contact, normal, v, w);
+  }
+
+  /** Compute the altitude above ground.
+      The altitude depends on location l.
+      @param l location
+      @param maxdist max distance from location to check for contact, else return maxdist
+      @param contact Contact point location below the location l
+      @param normal Normal vector at the contact point
+      @param v Linear velocity at the contact point
+      @param w Angular velocity at the contact point
+      @return altitude above ground
+   */
+  double GetContact(double maxdist,
+    const FGLocation& location, FGLocation& contact,
+    FGColumnVector3& normal, FGColumnVector3& v,
+    FGColumnVector3& w,
+    FGColumnVector3& ground_position,
+    double& ground_mass_inverse,
+    FGMatrix33& ground_j_inverse) const
+  {
+    return GetContact(time, maxdist, location, contact, normal, v, w, ground_position, ground_mass_inverse, ground_j_inverse);
+  }
 
   /** Set the terrain elevation.
       Only needs to be implemented if JSBSim should be allowed
@@ -131,9 +179,17 @@ public:
     a(semiMajor), b(semiMinor) {}
 
   double GetAGLevel(double t, const FGLocation& location,
-                    FGLocation& contact,
-                    FGColumnVector3& normal, FGColumnVector3& v,
-                    FGColumnVector3& w) const override;
+    FGLocation& contact,
+    FGColumnVector3& normal, FGColumnVector3& v,
+    FGColumnVector3& w) const override;
+
+  double GetContact(double t, double maxdist, const FGLocation& location,
+    FGLocation& contact,
+    FGColumnVector3& normal, FGColumnVector3& v,
+    FGColumnVector3& w,
+    FGColumnVector3& ground_position,
+    double& ground_mass_inverse,
+    FGMatrix33& ground_j_inverse) const override;
 
   void SetTerrainElevation(double h) override
   { mTerrainElevation = h; }

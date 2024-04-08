@@ -231,6 +231,7 @@ void FGAccelerations::SetHoldDown(bool hd)
 
 void FGAccelerations::CalculateFrictionForces(double dt)
 {
+  const double invMass = 1.0 / in.Mass;
   vector<LagrangeMultiplier*>& multipliers = *in.MultipliersList;
   size_t n = multipliers.size();
 
@@ -245,17 +246,17 @@ void FGAccelerations::CalculateFrictionForces(double dt)
 
   // Assemble the linear system of equations
   for (unsigned int i=0; i < n; i++) {
-    FGColumnVector3 U = multipliers[i]->ForceJacobian;
-    FGColumnVector3 r = multipliers[i]->LeverArm;
-    FGColumnVector3 v1 = U / in.Mass;
+    const FGColumnVector3& U = multipliers[i]->ForceJacobian;
+    const FGColumnVector3& r = multipliers[i]->LeverArm;
+    FGColumnVector3 v1 = U * invMass;
     FGColumnVector3 v2 = in.Jinv * (r*U); // Should be J^-T but J is symmetric and so is J^-1
 
     for (unsigned int j=0; j < i; j++)
       a[i*n+j] = a[j*n+i]; // Takes advantage of the symmetry of Jac^T*M^-1*Jac
 
     for (unsigned int j=i; j < n; j++) {
-      U = multipliers[j]->ForceJacobian;
-      r = multipliers[j]->LeverArm;
+      const FGColumnVector3& U = multipliers[j]->ForceJacobian;
+      const FGColumnVector3& r = multipliers[j]->LeverArm;
       a[i*n+j] = DotProduct(U, v1 + v2*r);
     }
   }
@@ -277,14 +278,14 @@ void FGAccelerations::CalculateFrictionForces(double dt)
   // 2. Divide every line of 'a' and 'rhs' by a[i,i]. This is in order to save
   //    a division computation at each iteration of Gauss-Seidel.
   for (unsigned int i=0; i < n; i++) {
-    double d = a[i*n+i];
-    FGColumnVector3 U = multipliers[i]->ForceJacobian;
-    FGColumnVector3 r = multipliers[i]->LeverArm;
+    double rd = 1 / a[i*n+i];
+    const FGColumnVector3& U = multipliers[i]->ForceJacobian;
+    const FGColumnVector3& r = multipliers[i]->LeverArm;
 
-    rhs[i] = -DotProduct(U, vdot + wdot*r)/d;
+    rhs[i] = -DotProduct(U, vdot + wdot*r) * rd;
 
     for (unsigned int j=0; j < n; j++)
-      a[i*n+j] /= d;
+      a[i*n+j] *= rd;
   }
 
   // Resolve the Lagrange multipliers with the projected Gauss-Seidel method
@@ -311,15 +312,15 @@ void FGAccelerations::CalculateFrictionForces(double dt)
 
   for (unsigned int i=0; i< n; i++) {
     double lambda = multipliers[i]->value;
-    FGColumnVector3 U = multipliers[i]->ForceJacobian;
-    FGColumnVector3 r = multipliers[i]->LeverArm;
+    const FGColumnVector3& U = multipliers[i]->ForceJacobian;
+    const FGColumnVector3& r = multipliers[i]->LeverArm;
 
     FGColumnVector3 F = lambda * U;
     vFrictionForces += F;
     vFrictionMoments += r * F;
   }
 
-  FGColumnVector3 accel = vFrictionForces / in.Mass;
+  FGColumnVector3 accel = vFrictionForces * invMass;
   FGColumnVector3 omegadot = in.Jinv * vFrictionMoments;
 
   vBodyAccel += accel;

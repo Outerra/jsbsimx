@@ -63,6 +63,7 @@ class FGWinds;
 class FGAuxiliary;
 class FGBuoyantForces;
 class FGExternalReactions;
+class FGGroundCallback;
 class FGGroundReactions;
 class FGFCS;
 class FGInertial;
@@ -207,7 +208,7 @@ class JSBSIM_API FGFDMExec : public FGJSBBase
 public:
 
   /// Default constructor
-  FGFDMExec(FGPropertyManager* root = nullptr, std::shared_ptr<unsigned int> fdmctr = nullptr);
+  FGFDMExec(JSBSim::FGGroundCallback* gc, FGPropertyManager* root = nullptr, std::shared_ptr<unsigned int> fdmctr = nullptr);
 
   /// Default destructor
   ~FGFDMExec();
@@ -625,6 +626,8 @@ public:
 
   auto GetRandomGenerator(void) const { return RandomGenerator; }
 
+  static void RedirectStdOutput(std::ostream* cout_buf, std::ostream* cerr_buf);
+
 private:
   unsigned int Frame;
   unsigned int IdFDM;
@@ -671,6 +674,8 @@ private:
   bool trim_status;
   int ta_mode;
   int trim_completed;
+
+  std::shared_ptr<JSBSim::FGGroundCallback> _gc;
 
   std::shared_ptr<FGInitialCondition> IC;
   std::shared_ptr<FGScript>           Script;

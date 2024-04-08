@@ -195,6 +195,11 @@ public:
                             data[2] + B.data[2] );
   }
 
+  /// Unary - operator.
+  FGColumnVector3 operator-() const {
+    return FGColumnVector3(-data[0], -data[1], -data[2]);
+  }
+
   /// Subtraction operator.
   FGColumnVector3 operator-(const FGColumnVector3& B) const {
     return FGColumnVector3( data[0] - B.data[0], data[1] - B.data[1],
