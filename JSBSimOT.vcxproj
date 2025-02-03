@@ -86,10 +86,6 @@
       </DataExecutionPrevention>
       <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>
-      </Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -132,15 +128,12 @@
     <Xdcmake>
       <SuppressStartupBanner>false</SuppressStartupBanner>
     </Xdcmake>
-    <PostBuildEvent>
-      <Command>
-      </Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\initialization\FGLinearization.h" />
     <ClInclude Include="src\input_output\FGInputSocket.h" />
     <ClInclude Include="src\input_output\FGInputType.h" />
+    <ClInclude Include="src\input_output\FGLog.h" />
     <ClInclude Include="src\input_output\fgmodelloader.h" />
     <ClInclude Include="src\input_output\fgoutputfg.h" />
     <ClInclude Include="src\input_output\fgoutputfile.h" />
@@ -265,6 +258,7 @@
     <ClCompile Include="src\initialization\FGLinearization.cpp" />
     <ClCompile Include="src\input_output\FGInputSocket.cpp" />
     <ClCompile Include="src\input_output\FGInputType.cpp" />
+    <ClCompile Include="src\input_output\FGLog.cpp" />
     <ClCompile Include="src\input_output\FGModelLoader.cpp" />
     <ClCompile Include="src\input_output\FGOutputFG.cpp" />
     <ClCompile Include="src\input_output\FGOutputFile.cpp" />
@@ -391,4 +385,10 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <ItemDefinitionGroup>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
 </Project>

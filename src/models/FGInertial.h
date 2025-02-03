@@ -85,7 +85,7 @@ public:
   }
   double GetSemimajor(void) const {return a;}
   double GetSemiminor(void) const {return b;}
-  double GetGM(void) {return GM;}
+  double GetGM(void) const {return GM;}
 
   /** Get terrain contact point information below the current location.
     @param location     Location at which the contact point is evaluated.

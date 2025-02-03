@@ -33,6 +33,8 @@ INCLUDES
 
 #include "FGPropertyValue.h"
 
+using namespace std;
+
 namespace JSBSim {
 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -49,8 +51,12 @@ FGPropertyValue::FGPropertyValue(const std::string& propName,
     Sign = -1.0;
   }
 
-  if (PropertyManager->HasNode(PropertyName))
+  if (PropertyManager->HasNode(PropertyName)) {
     PropertyNode = PropertyManager->GetNode(PropertyName);
+
+    assert(PropertyNode);
+    XML_def = nullptr; // Now that the property is bound, we no longer need that.
+  }
 }
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
